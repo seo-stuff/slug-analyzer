@@ -57,11 +57,13 @@ with pd.ExcelWriter(export_file, engine='openpyxl') as writer:
     df_all = pd.concat([pd.DataFrame(data) for data in nested_slug_stats.values()], ignore_index=True)
     df_all = df_all.groupby('Слаг').agg({'Количество': 'sum', 'Сум.видимость': 'sum', 'Глубина': 'first', 'Пример URL': 'first'}).reset_index()
     df_all = df_all.sort_values(by='Сум.видимость', ascending=False)
+    df_all['% от общего'] = round((df_all['Сум.видимость'] / df_all['Сум.видимость'].sum()) * 100, 1)  # Округляем проценты
+    df_all = df_all[['Слаг', 'Сум.видимость', 'Количество', 'Глубина', 'Пример URL', '% от общего']]  # Переупорядочиваем колонки
     df_all.to_excel(writer, index=False, sheet_name='Статистика')
     worksheet = writer.sheets['Статистика']
     
     # Задаем ширину колонок
-    column_widths = [20, 20, 20, 20, 30]  # Ширина колонок
+    column_widths = [20, 20, 20, 20, 30, 20]  # Ширина колонок
     for i, column in enumerate(worksheet.columns):
         max_length = max(len(str(cell.value)) for cell in column)
         worksheet.column_dimensions[column[0].column_letter].width = column_widths[i]
@@ -71,6 +73,8 @@ with pd.ExcelWriter(export_file, engine='openpyxl') as writer:
         df_nesting_level = pd.DataFrame(data)
         df_nesting_level = df_nesting_level.groupby('Слаг').agg({'Количество': 'sum', 'Сум.видимость': 'sum', 'Глубина': 'first', 'Пример URL': 'first'}).reset_index()
         df_nesting_level = df_nesting_level.sort_values(by='Сум.видимость', ascending=False)
+        df_nesting_level['% от общего'] = round((df_nesting_level['Сум.видимость'] / df_all['Сум.видимость'].sum()) * 100, 1)
+        df_nesting_level = df_nesting_level[['Слаг', 'Сум.видимость', 'Количество', 'Глубина', 'Пример URL', '% от общего']]
         df_nesting_level.to_excel(writer, index=False, sheet_name=f'Вложенность {nesting_level}')
         worksheet = writer.sheets[f'Вложенность {nesting_level}']
 
