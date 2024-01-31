@@ -4,6 +4,7 @@ import time
 import os
 import pyfiglet
 from openpyxl import load_workbook
+from datetime import datetime  # Добавляем импорт модуля datetime
 
 # Проверка наличия файла import.csv
 import_file = 'import.csv'
@@ -15,7 +16,7 @@ if not os.path.isfile(import_file):
     exit()  # Выход из скрипта
 
 # Запуск скрипта
-text = "Slug Analyzer"
+text = "Slug Analyzer ver. 2.2"
 ascii_art = pyfiglet.figlet_format(text, font="slant")
 print(ascii_art)
 print(f'Скрипт запущен, ожидайте ...')
@@ -91,9 +92,14 @@ for index, row in df.iterrows():
     )
     print(status_str, end='\r')
 
+# Генерируем строку с текущей датой и временем в читаемом формате
+current_datetime = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+
+# Создаем имя файла с датой и временем
+export_file = f'export_{current_datetime}.xlsx'
+
 # Создаем Excel-файл с отдельными листами для каждого уровня вложенности
-print(f'\nИдёт запись в файл export.xlsx ...')
-export_file = 'export.xlsx'
+print(f'\nИдёт запись в файл {export_file} ...')
 with pd.ExcelWriter(export_file, engine='openpyxl') as writer:
     # Создаем первый лист со всеми данными
     df_all = pd.concat([pd.DataFrame(data) for data in nested_slug_stats.values()], ignore_index=True)
